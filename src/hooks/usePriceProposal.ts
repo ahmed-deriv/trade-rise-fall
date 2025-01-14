@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getDerivAPI } from "../services/deriv-api.instance";
 import { PriceProposalResponse } from "../types/deriv-api.types";
 import useDebounce from "./useDebounce";
+import { tradingPanelStore } from "../stores/TradingPanelStore";
 
 interface ProposalState {
   rise?: PriceProposalResponse["proposal"];
@@ -18,8 +19,9 @@ export const usePriceProposal = (
   duration: number,
   basis: string,
   symbol: string,
-  durationError: string,
-  priceError: string
+  durationError: string | null,
+  priceError: string | null,
+  is_rise_fall_valid: boolean
 ) => {
   const [proposal, setProposal] = useState<ProposalState>({});
   const [isLoading, setIsLoading] = useState<LoadingState>({
@@ -71,15 +73,22 @@ export const usePriceProposal = (
               setIsLoading((prev) => ({ ...prev, [type]: false }));
               if (response.error) {
                 console.error(`${type} proposal error:`, response.error);
+                tradingPanelStore.priceError =
+                  response.error.message || "Invalid contract parameters";
               } else if (response.proposal) {
                 setProposal((prev) => ({ ...prev, [type]: response.proposal }));
               }
             },
             `PROPOSAL_${type.toUpperCase()}`
           );
-        } catch (err) {
+        } catch (err: any) {
           console.error(`${type} subscription error:`, err);
           setIsLoading((prev) => ({ ...prev, [type]: false }));
+
+          if (err.code === "ContractBuyValidationError") {
+            tradingPanelStore.priceError =
+              err.message || "Invalid contract parameters";
+          }
         }
       };
 
@@ -91,18 +100,25 @@ export const usePriceProposal = (
 
     setProposal({});
     setIsLoading({ rise: false, fall: false });
-
     if (
       debouncedPrice &&
       duration &&
       basis &&
       symbol &&
       !durationError &&
-      !priceError
+      !priceError &&
+      is_rise_fall_valid
     ) {
       handleProposal();
     }
-  }, [debouncedPrice, debouncedDuration, basis, symbol, derivAPI]);
+  }, [
+    debouncedPrice,
+    debouncedDuration,
+    basis,
+    symbol,
+    derivAPI,
+    is_rise_fall_valid,
+  ]);
 
   return { proposal, clearProposal, isLoading };
 };

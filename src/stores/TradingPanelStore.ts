@@ -1,13 +1,14 @@
 import { makeAutoObservable } from "mobx";
 
 export class TradingPanelStore {
-  duration = 1;
+  duration = 15;
   price = "10";
   allowEquals = false;
   selectedDurationTab: "duration" | "endtime" = "duration";
   selectedStakeTab: "stake" | "payout" = "stake";
   durationError: string | null = null;
   priceError: string | null = null;
+  is_rise_fall_valid: boolean = true;
 
   constructor() {
     makeAutoObservable(this);
@@ -26,8 +27,8 @@ export class TradingPanelStore {
       return;
     }
 
-    if (numValue <= 0) {
-      this.durationError = "Duration must be greater than 0";
+    if (numValue < 15) {
+      this.durationError = "Minimum duration is 15 minutes";
       return;
     }
 
@@ -72,6 +73,10 @@ export class TradingPanelStore {
 
   setSelectedStakeTab = (value: "stake" | "payout") => {
     this.selectedStakeTab = value;
+  };
+
+  setIsRiseFallValid = (value: boolean) => {
+    this.is_rise_fall_valid = value;
   };
 }
 

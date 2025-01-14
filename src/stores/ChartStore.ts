@@ -1,4 +1,5 @@
 import { makeAutoObservable } from "mobx";
+import { tradingPanelStore } from "./TradingPanelStore";
 
 export class ChartStore {
   symbol: string = "";
@@ -10,7 +11,10 @@ export class ChartStore {
   }
 
   setSymbol = (symbol: string) => {
+    tradingPanelStore.setIsRiseFallValid(false);
     this.symbol = symbol;
+    tradingPanelStore.priceError = null;
+    tradingPanelStore.durationError = null;
   };
 
   setChartStatus = (status: boolean) => {

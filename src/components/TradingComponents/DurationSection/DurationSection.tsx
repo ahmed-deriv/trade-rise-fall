@@ -56,7 +56,7 @@ export const DurationSection = ({
             message={durationError}
           />
           <Text as="span" size="sm" className="text-less-prominent">
-            Range: 1 - 1,440 minutes
+            Range: 15 - 1,440 minutes
           </Text>
         </div>
       ) : (

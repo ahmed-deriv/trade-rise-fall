@@ -20,7 +20,6 @@ export const Chart = observer(() => {
   } = chartStore;
   const derivAPI = getDerivAPI();
   const [isConnected, setIsConnected] = useState(derivAPI.isConnected());
-
   // Initialize chart store
   useEffect(() => {
     setSymbol("1HZ10V");
