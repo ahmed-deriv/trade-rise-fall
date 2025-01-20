@@ -1,0 +1,64 @@
+.open-contracts-modal {
+  .quill-modal__button-wrapper {
+    display: none;
+  }
+
+  .contracts-container {
+    padding: 16px;
+  }
+
+  .contracts-list {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding-right: 8px;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: var(--system-light-2-secondary, #f2f3f4);
+      border-radius: 2px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: var(--text-less-prominent, #999999);
+      border-radius: 2px;
+    }
+  }
+
+  .contract-item {
+    background: var(--system-light-2-secondary, #f2f3f4);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 12px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .contract-details {
+      margin-top: 12px;
+
+      .detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+
+        &:last-child {
+          margin-bottom: 0;
+          margin-top: 12px;
+        }
+      }
+    }
+
+    .profit {
+      color: var(--text-profit-success, #4bb4b3);
+    }
+
+    .loss {
+      color: var(--text-profit-danger, #ec3f3f);
+    }
+  }
+}

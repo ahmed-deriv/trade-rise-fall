@@ -177,4 +177,32 @@
       background: linear-gradient(90deg, #ec3f3f 0%, #ff5c5c 100%);
     }
   }
+
+  .open-contracts-button {
+    display: flex;
+    justify-content: center;
+    margin-top: 8px;
+
+    button {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 4px;
+      background: var(--system-light-2-secondary, #f2f3f4);
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background: var(--system-light-3-hover, #e6e9ea);
+      }
+
+      span:last-child {
+        background: var(--brand-blue, #85acb0);
+        color: var(--text-colored-background, #ffffff);
+        padding: 2px 8px;
+        border-radius: 8px;
+        font-size: 12px;
+      }
+    }
+  }
 }

@@ -1,5 +1,7 @@
 import { useContractsFor } from "./useContractsFor";
 import { usePriceProposal } from "./usePriceProposal";
+import { useProposalOpenContract } from "./useProposalOpenContract";
+import { useBuyContract } from "./useBuyContract";
 
 export const useRiseFallTrading = (
   symbol: string,
@@ -10,21 +12,26 @@ export const useRiseFallTrading = (
   priceError: string | null,
   isRiseFallValid: boolean
 ) => {
-  // Use both hooks internally
+  // Use hooks internally
   useContractsFor(symbol);
-  const { proposal, clearProposal, isLoading } = usePriceProposal(
-    price,
-    duration,
-    basis,
-    symbol,
-    durationError,
-    priceError,
-    isRiseFallValid
-  );
+  useProposalOpenContract();
+  const { proposal, clearProposal, isLoading, handleProposal } =
+    usePriceProposal(
+      price,
+      duration,
+      basis,
+      symbol,
+      durationError,
+      priceError,
+      isRiseFallValid
+    );
+
+  const { buyContract } = useBuyContract(price, handleProposal);
 
   return {
     proposal,
     clearProposal,
     isLoading,
+    buyContract,
   };
 };

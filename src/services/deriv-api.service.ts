@@ -285,7 +285,7 @@ export class DerivAPIService {
    * @param prefix - The prefix to match subscriptions against
    * @private
    */
-  private unsubscribeByPrefix(prefix: string): void {
+  public unsubscribeByPrefix(prefix: string): void {
     for (const [key, subscription] of this.activeSubscriptions) {
       if (key.startsWith(prefix)) {
         subscription.unsubscribe();

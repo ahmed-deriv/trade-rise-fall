@@ -1,4 +1,5 @@
 import { makeAutoObservable } from "mobx";
+import { OpenContract } from "../types/deriv-api.types";
 
 export class TradingPanelStore {
   duration = 15;
@@ -9,6 +10,10 @@ export class TradingPanelStore {
   durationError: string | null = null;
   priceError: string | null = null;
   is_rise_fall_valid: boolean = true;
+  riseContractId: string | null = null;
+  fallContractId: string | null = null;
+  openContracts: OpenContract[] = [];
+  isOpenContractsModalVisible = false;
 
   constructor() {
     makeAutoObservable(this);
@@ -77,6 +82,30 @@ export class TradingPanelStore {
 
   setIsRiseFallValid = (value: boolean) => {
     this.is_rise_fall_valid = value;
+  };
+
+  setRiseContractId = (id: string | null) => {
+    this.riseContractId = id;
+  };
+
+  setFallContractId = (id: string | null) => {
+    this.fallContractId = id;
+  };
+
+  addOpenContract = (contract: OpenContract) => {
+    const existingIndex = this.openContracts.findIndex(
+      (c) => c.contract_id === contract.contract_id
+    );
+
+    if (existingIndex !== -1) {
+      this.openContracts[existingIndex] = contract;
+    } else {
+      contract.contract_id && this.openContracts.push(contract);
+    }
+  };
+
+  setOpenContractsModalVisible = (visible: boolean) => {
+    this.isOpenContractsModalVisible = visible;
   };
 }
 
