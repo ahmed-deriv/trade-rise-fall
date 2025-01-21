@@ -1,0 +1,34 @@
+name: 'Setup Environment'
+description: 'Sets up Node.js and installs dependencies'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        echo "🔧 Setting up environment..."
+        echo "📦 Node.js version:"
+        node --version
+        
+        echo "📦 NPM version:"
+        npm --version
+        
+        echo "📥 Installing dependencies..."
+        npm ci
+        
+        echo "🔧 Installing Vercel CLI..."
+        npm install --global vercel@latest
+        echo "  - Vercel CLI version:"
+        vercel --version
+        
+        echo "📋 Listing installed packages:"
+        npm list --depth=0
+        
+        echo "✅ Environment setup completed successfully"

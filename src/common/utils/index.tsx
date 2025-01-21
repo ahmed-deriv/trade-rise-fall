@@ -11,16 +11,6 @@ export const isBrowser = (): boolean => typeof window !== "undefined";
  * @param path - Optional path to append to the base URL
  * @returns The complete URL path
  */
-/**
- * Gets the chart URL based on environment
- * @param path - Path to append to the chart URL
- * @returns The complete chart URL
- */
-export const getChartUrl = (): string => {
-  const baseUrl =
-    process.env.REACT_CURRENT_ENVIRONMENT === "local" ? "" : "/trade-rise-fall";
-  return `${baseUrl}/js/smartcharts/`;
-};
 
 export const isLogged = (): boolean => {
   return authStore.isAuthenticated;

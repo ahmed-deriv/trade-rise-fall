@@ -19,7 +19,7 @@ export default defineConfig({
   ],
   source: {
     entry: {
-      index: "./src/main.jsx",
+      index: "./src/main.tsx",
     },
     define: {
       "process.env": JSON.stringify(process.env),
@@ -31,7 +31,7 @@ export default defineConfig({
     },
   },
   output: {
-    assetPrefix: "/trade-rise-fall/",
+    assetPrefix: "/",
     copy: [
       {
         from: "node_modules/@deriv/deriv-charts/dist/*",

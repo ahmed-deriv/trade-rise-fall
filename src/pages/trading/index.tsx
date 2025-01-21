@@ -1,12 +1,11 @@
 import React, { useEffect } from "react";
 import DerivTrading from "../../features/DerivTrading";
 import { setSmartChartsPublicPath } from "@deriv/deriv-charts";
-import { getChartUrl } from "../../common/utils";
 
 const TradingPage: React.FC = () => {
   useEffect(() => {
     try {
-      const chartsPath = getChartUrl();
+      const chartsPath = "/js/smartcharts/";
       setSmartChartsPublicPath(chartsPath);
     } catch (error) {
       console.error("Failed to initialize charts:", error);

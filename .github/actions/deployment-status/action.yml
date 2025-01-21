@@ -1,0 +1,50 @@
+name: 'Update Deployment Status'
+description: 'Updates the deployment status in GitHub'
+
+inputs:
+  environment:
+    description: 'The deployment environment (production/preview)'
+    required: true
+  deployment-url:
+    description: 'The URL of the deployed application'
+    required: true
+  sha:
+    description: 'Git commit SHA'
+    required: true
+  status:
+    description: 'Deployment status (success/failure)'
+    required: true
+  description:
+    description: 'Status description'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Update deployment status
+      shell: bash
+      run: |
+        echo "🔄 Updating deployment status..."
+        echo "  - Environment: ${{ inputs.environment }}"
+        echo "  - Status: ${{ inputs.status }}"
+        echo "  - URL: ${{ inputs.deployment-url }}"
+        echo "  - Commit SHA: ${{ inputs.sha }}"
+        
+        echo "📝 Creating deployment record..."
+        DEPLOYMENT_ID=$(curl -s -X POST \
+          -H "Authorization: token ${{ github.token }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          -d "{\"ref\":\"${{ inputs.sha }}\",\"environment\":\"${{ inputs.environment }}\",\"auto_merge\":false}" \
+          "https://api.github.com/repos/${{ github.repository }}/deployments" | jq -r '.id')
+        
+        echo "  - Created deployment with ID: $DEPLOYMENT_ID"
+        
+        echo "📤 Updating deployment status..."
+        STATUS_RESPONSE=$(curl -s -X POST \
+          -H "Authorization: token ${{ github.token }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          -d "{\"state\":\"${{ inputs.status }}\",\"environment_url\":\"${{ inputs.deployment-url }}\",\"description\":\"${{ inputs.description }}\"}" \
+          "https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses")
+        
+        echo "✅ Deployment status updated successfully"
+        echo "  - Description: ${{ inputs.description }}"

@@ -1,0 +1,114 @@
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+  packages: read
+  pull-requests: write
+  deployments: write
+  id-token: write
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+env:
+  NODE_ENV: production
+  HUSKY: 0
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  validate:
+    name: Validate Deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      secrets-valid: ${{ steps.check-secrets.outputs.valid }}
+    steps:
+      - name: Validate Required Secrets
+        id: check-secrets
+        run: |
+          echo "🔍 Checking required secrets..."
+          missing_secrets=()
+          
+          if [ -z "$VERCEL_TOKEN" ]; then
+            missing_secrets+=("VERCEL_TOKEN")
+          fi
+          if [ -z "$VERCEL_ORG_ID" ]; then
+            missing_secrets+=("VERCEL_ORG_ID")
+          fi
+          if [ -z "$VERCEL_PROJECT_ID" ]; then
+            missing_secrets+=("VERCEL_PROJECT_ID")
+          fi
+
+          if [ ${#missing_secrets[@]} -ne 0 ]; then
+            echo "❌ Missing required secrets: ${missing_secrets[*]}"
+            echo "valid=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+          
+          echo "✅ All required secrets are present"
+          echo "valid=true" >> $GITHUB_OUTPUT
+
+  deploy:
+    name: Deploy Production
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.deployment-url }}
+    permissions:
+      deployments: write
+      statuses: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Deploy to Vercel
+        id: deploy
+        timeout-minutes: 10
+        uses: ./.github/actions/deploy/vercel/production
+        env:
+          REACT_APP_WS_PORT: ${{ secrets.REACT_APP_WS_PORT }}
+          REACT_APP_WS_URL: ${{ secrets.REACT_APP_WS_URL }}
+          REACT_OAUTH_URL: ${{ secrets.REACT_OAUTH_URL }}
+          REACT_CURRENT_ENVIRONMENT: production
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          sha: ${{ github.sha }}
+
+      - name: Update deployment status
+        uses: ./.github/actions/deployment-status
+        if: success()
+        with:
+          environment: 'production'
+          deployment-url: ${{ steps.deploy.outputs.deployment-url }}
+          sha: ${{ github.sha }}
+          status: 'success'
+          description: '✨ Production deployment completed'
+
+      - name: Handle deployment failure
+        if: failure()
+        uses: ./.github/actions/deployment-status
+        with:
+          environment: 'production'
+          deployment-url: ${{ steps.deploy.outputs.deployment-url }}
+          sha: ${{ github.sha }}
+          status: 'failure'
+          description: '❌ Production deployment failed'

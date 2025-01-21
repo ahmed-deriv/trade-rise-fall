@@ -1,0 +1,101 @@
+name: 'Deploy to Vercel Development'
+description: 'Deploys the application to Vercel Preview environment'
+
+inputs:
+  vercel-token:
+    description: 'Vercel authentication token'
+    required: true
+  vercel-org-id:
+    description: 'Vercel organization ID'
+    required: true
+  vercel-project-id:
+    description: 'Vercel project ID'
+    required: true
+  pr-number:
+    description: 'Pull request number'
+    required: true
+
+outputs:
+  deployment-url:
+    description: 'The URL of the deployed application'
+    value: ${{ steps.deploy.outputs.url }}
+  deployment-id:
+    description: 'The ID of the deployment'
+    value: ${{ steps.deploy.outputs.id }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Pull Vercel Environment Information
+      shell: bash
+      run: |
+        echo "🔄 Pulling Vercel environment information..."
+        echo "  - Environment: Preview"
+        echo "  - PR Number: ${{ inputs.pr-number }}"
+        vercel pull --yes --environment=preview --token=${{ inputs.vercel-token }}
+        echo "✅ Successfully pulled Vercel environment information"
+      env:
+        VERCEL_ORG_ID: ${{ inputs.vercel-org-id }}
+        VERCEL_PROJECT_ID: ${{ inputs.vercel-project-id }}
+
+    - name: Build Project
+      shell: bash
+      run: |
+        echo "🏗️ Starting build process for preview deployment..."
+        echo "📝 Exporting environment variables..."
+        # Export all GitHub secrets as environment variables
+        for secret in $(env | grep "GITHUB_.*=" | cut -d= -f1); do
+          echo "  - Exporting $secret"
+          echo "$secret=${!secret}" >> $GITHUB_ENV
+        done
+        for secret in $(env | grep "INPUT_.*=" | cut -d= -f1); do
+          # Convert INPUT_VERCEL_TOKEN to VERCEL_TOKEN etc.
+          clean_name=$(echo "$secret" | sed 's/^INPUT_//' | tr '[:upper:]' '[:lower:]')
+          echo "  - Converting and exporting $secret as $clean_name"
+          echo "$clean_name=${!secret}" >> $GITHUB_ENV
+        done
+        
+        echo "🚀 Running build command..."
+        npm run build
+        
+        echo "📦 Checking build output..."
+        if [ -d "dist" ]; then
+          echo "  - dist directory exists"
+          echo "  - Contents of dist directory:"
+          ls -la dist/
+        else
+          echo "❌ dist directory not found!"
+          exit 1
+        fi
+        
+        echo "✅ Preview build completed successfully"
+      env:
+        VERCEL_ORG_ID: ${{ inputs.vercel-org-id }}
+        VERCEL_PROJECT_ID: ${{ inputs.vercel-project-id }}
+
+    - name: Deploy to Vercel
+      id: deploy
+      shell: bash
+      run: |
+        echo "🚀 Starting Vercel preview deployment..."
+        echo "📂 Deploying dist directory..."
+        echo "  - Current directory contents:"
+        ls -la dist/
+        
+        echo "☁️ Deploying to Vercel preview environment..."
+        DEPLOYMENT=$(vercel deploy --cwd dist --token=${{ inputs.vercel-token }} --yes)
+        DEPLOYMENT_URL="$DEPLOYMENT"
+        DEPLOYMENT_ID=$(echo "$DEPLOYMENT" | rev | cut -d'/' -f1 | rev)
+        
+        echo "  - Deployment URL: $DEPLOYMENT_URL"
+        echo "  - Deployment ID: $DEPLOYMENT_ID"
+        
+        echo "💾 Saving deployment information..."
+        echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+        echo "id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
+        
+        echo "✅ Preview deployment completed successfully"
+        echo "🌍 Preview URL: $DEPLOYMENT_URL"
+      env:
+        VERCEL_ORG_ID: ${{ inputs.vercel-org-id }}
+        VERCEL_PROJECT_ID: ${{ inputs.vercel-project-id }}
