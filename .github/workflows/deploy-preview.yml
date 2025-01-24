@@ -27,10 +27,16 @@ jobs:
     timeout-minutes: 5
     permissions:
       pull-requests: read
+      contents: read
     outputs:
       is-fork: ${{ steps.check.outputs.is-fork }}
       is-authorized: ${{ steps.check.outputs.is-authorized }}
     steps:
+      - name: Verify user
+        uses: "deriv-com/shared-actions/.github/actions/verify_user_in_organization@v1"
+        with:
+            username: ${{github.event.pull_request.user.login}}
+            token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       - name: Check PR source and permissions
         id: check
         uses: actions/github-script@v7
@@ -75,11 +81,6 @@ jobs:
       pull-requests: write
       contents: read
     steps:
-      - name: Verify user
-        uses: "deriv-com/shared-actions/.github/actions/verify_user_in_organization@v1"
-        with:
-            username: ${{github.event.pull_request.user.login}}
-            token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       - name: Checkout repository
         uses: actions/checkout@v4
         with:

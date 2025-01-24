@@ -28,7 +28,14 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
+      - name: Verify user
+        uses: "deriv-com/shared-actions/.github/actions/verify_user_in_organization@v1"
+        with:
+            username: ${{github.event.push.sender.login}}
+            token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       - name: Checkout
         uses: actions/checkout@v4
 
